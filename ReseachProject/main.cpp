@@ -1,104 +1,185 @@
 //
 //  main.cpp
-//  0414Test02
 //
-//  Created by r.fujiki on 2016/04/14.
-//  Copyright © 2016年 藤木良祐. All rights reserved.
 //
-
 #include <iostream>
 #include <OpenGL/OpenGL.h>
 #include <GLUT/GLUT.h>
+#include <chrono>
 
-const GLfloat lightPosition1[4] = {0.0f,3.0f, 5.0f, 1.0f};
-const GLfloat green[] = { 0.0, 1.0, 0.0, 1.0 };
-const GLfloat lightPosition2[4] = {5.0f,3.0f, 0.0f, 1.0f};
-const GLfloat red[] = { 1.0, 0.0, 0.0, 1.0 };
 
-const GLfloat teapotAmbient[4] = {0.3f,0.5f, 0.0f, 1.0f};
-const GLfloat teapotDiffuse[4] = {1.0f,1.0f, 0.3f, 1.0f};
-const GLfloat teapotSpecular[4] = {1.0f,1.0f, 1.0f, 1.0f};
-const GLfloat teapotShininess[4] = {20.0f};
-
-void display(void)
+void display_func(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    /*　画面と、デプスバッファを消去 */
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    /* ４角形を描く */
+    glBegin(GL_QUADS);
+    
+    /* 左側の面 */
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(-1.0,  1.0,  -9.0);
+    glVertex3f(-1.0,  1.0, -11.0);
+    glVertex3f(-1.0, -1.0, -11.0);
+    glVertex3f(-1.0, -1.0,  -9.0);
+    
+    /* 右側の面 */
+    glColor3f(0.0, 1.0, 0.0);
+    glVertex3f( 1.0,  1.0,  -9.0);
+    glVertex3f( 1.0,  1.0, -11.0);
+    glVertex3f( 1.0, -1.0, -11.0);
+    glVertex3f( 1.0, -1.0,  -9.0);
+    
+    /* 上 */
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex3f( 1.0, 1.0,  -9.0);
+    glVertex3f( 1.0, 1.0, -11.0);
+    glVertex3f(-1.0, 1.0, -11.0);
+    glVertex3f(-1.0, 1.0,  -9.0);
+    
+    /* 下 */
+    glColor3f(1.0, 1.0, 1.0);
+    glVertex3f( 1.0, -1.0,  -9.0);
+    glVertex3f( 1.0, -1.0, -11.0);
+    glVertex3f(-1.0, -1.0, -11.0);
+    glVertex3f(-1.0, -1.0,  -9.0);
+    glEnd();
+    
+    /* 画面更新 */
     glFlush();
 }
 
-void init(void)
+
+/*
+ *    ウインドウサイズ更新時の処理
+ */
+void reshape_func(int width, int height)
 {
-    glClearColor(0.0, 0.0, 1.0, 1.0);
+    /* 表示範囲設定 */
+    glViewport(0, 0, width, height);
+    
+    /* 投影行列を設定する */
+    glMatrixMode(GL_PROJECTION);
+    
+    /*座標変換行列の初期化 */
+    glLoadIdentity();
+    
+    /* 投影範囲を設定 */
+    glFrustum(-1.0, 1.0, -1.0, 1.0, 3.0, 10000.0);
+    
+    glMatrixMode(GL_MODELVIEW);
 }
 
+
+/*
+ *    main関数
+ *        glutを使ってウインドウを作るなどの処理をする
+ */
 int main(int argc, char *argv[])
 {
+    
+    /* glutの初期化 */
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA);
-    glutCreateWindow(argv[0]);
-    glutDisplayFunc(display);
-    init();
+    
+    /* 画面表示の設定                                        */
+    /*（３Ｄ表示をするので、デプスバッファを使うように設定    */
+    glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH);
+    
+    /* ウインドウの初期サイズを指定 */
+    glutInitWindowSize(300, 300);
+    
+    /* ウインドウを作る */
+    glutCreateWindow("Sample 2");
+    
+    /* 画面更新用の関数を登録 */
+    glutDisplayFunc(display_func);
+    
+    /* ウインドウのサイズ変更時の関数を登録 */
+    glutReshapeFunc(reshape_func);
+    
+    /* デプスバッファを使うように設定 */
+    glEnable(GL_DEPTH_TEST);
+    
+    /* イベント処理などを始める */
     glutMainLoop();
+    
     return 0;
 }
 
-//void setup(void) {
-//    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//    glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_LIGHTING);
-//    glEnable(GL_LIGHT0);
-//    glEnable(GL_LIGHT1);
-//
-//    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, red);
-//    glLightfv(GL_LIGHT0, GL_SPECULAR, red);
-//    glLightfv(GL_LIGHT1, GL_POSITION, lightPosition2);
-//    glLightfv(GL_LIGHT1, GL_DIFFUSE, green);
-//    glLightfv(GL_LIGHT1, GL_SPECULAR, green);
-//    glMaterialfv(GL_FRONT, GL_AMBIENT, teapotAmbient);
-//    glMaterialfv(GL_FRONT, GL_DIFFUSE, teapotDiffuse);
-//    glMaterialfv(GL_FRONT, GL_SPECULAR, teapotSpecular);
-//    glMaterialfv(GL_FRONT, GL_SHININESS, teapotShininess);
+
+//void hoge(int value){
+//    auto start = std::chrono::system_clock::now();
+//    int in = 0;
+//    for (int i = 0; i < 640; ++i) {
+//        in += 1;
+//    }
+//    auto end = std::chrono::system_clock::now();       // 計測終了時刻を保存
+//    auto dur = end - start;        // 要した時間を計算
+//    auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+//    cout << in << ":" << msec << "milli sec \n";
+//    glutTimerFunc(1000 , hoge , 0);
 //}
 //
-//void draw(void) {
+//void display(void)
+//{
+//    /*　画面と、デプスバッファを消去 */
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//    glutSolidTeapot(0.5);
+//
+//    /* ４角形を描く */
+//    glBegin(GL_QUADS);
+//
+//    /* 左側の面 */
+//    glColor3f(1.0, 0.0, 0.0);
+//    glVertex3f(-1.0,  1.0,  -9.0);
+//    glVertex3f(-1.0,  1.0, -11.0);
+//    glVertex3f(-1.0, -1.0, -11.0);
+//    glVertex3f(-1.0, -1.0,  -9.0);
+//
+//    /* 右側の面 */
+//    glColor3f(0.0, 1.0, 0.0);
+//    glVertex3f( 1.0,  1.0,  -9.0);
+//    glVertex3f( 1.0,  1.0, -11.0);
+//    glVertex3f( 1.0, -1.0, -11.0);
+//    glVertex3f( 1.0, -1.0,  -9.0);
+//
+//    /* 上 */
+//    glColor3f(0.0, 0.0, 1.0);
+//    glVertex3f( 1.0, 1.0,  -9.0);
+//    glVertex3f( 1.0, 1.0, -11.0);
+//    glVertex3f(-1.0, 1.0, -11.0);
+//    glVertex3f(-1.0, 1.0,  -9.0);
+//
+//    /* 下 */
+//    glColor3f(1.0, 1.0, 1.0);
+//    glVertex3f( 1.0, -1.0,  -9.0);
+//    glVertex3f( 1.0, -1.0, -11.0);
+//    glVertex3f(-1.0, -1.0, -11.0);
+//    glVertex3f(-1.0, -1.0,  -9.0);
+//    glEnd();
+//
+//    /* 画面更新 */
 //    glFlush();
 //}
 //
-//
-//void resize(int width, int height) {
-//    glViewport(0, 0, width, height);
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    gluPerspective(45.0,
-//                   (double)width/height,
-//                   0.1,
-//                   100.0);
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    gluLookAt(-0.5, 2.1, 2.0,
-//              0.0, 0.0, 0.0,
-//              0.0, 4.0, 0.0);
-//}
-//void display(void){
-//    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//    glutWireTeapot(0.5);
-//    glFlush();
+//void init(void)
+//{
+//    glClearColor(0.0, 0.0, 1.0, 1.0);
 //}
 //
-//
-//int main(int argc, char * argv[]) {
-//    // insert code here...
+//int main(int argc, char *argv[])
+//{
 //    glutInit(&argc, argv);
-//    glutInitWindowSize(600,600);
-//    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
-//    glutCreateWindow("Wire_teapot");
-//    glutReshapeFunc(resize);
-//    glutDisplayFunc(draw);
-//    setup();
+//    glutInitDisplayMode(GLUT_RGBA);
+//    glutCreateWindow(argv[0]);
+//    glutDisplayFunc(display);
+//    init();
+////    glutTimerFunc(1000 , hoge , 0);
 //    glutMainLoop();
+//
 //    return 0;
 //}
+
+
+
+
 
