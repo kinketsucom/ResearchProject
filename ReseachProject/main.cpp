@@ -8,6 +8,7 @@
 #include <GLUT/GLUT.h>
 #include <chrono>
 #include <sys/time.h>
+#include <thread>
 #include "Vector.h"//自前で用意したもの
 
 static GLfloat rot_y, rot_x;    /* 立方体の回転角度 */
@@ -256,13 +257,20 @@ void skey_func(int key, int x, int y)
     glutPostRedisplay();
 }
 
+void loop(){
+    int j = 0;
+    while(1){
+        j += 1;
+//        printf("fin:%d\n",j);
+    }
+}
 /*
  *    main関数
  *        glutを使ってウインドウを作るなどの処理をする
  */
 int main(int argc, char *argv[])
 {
-
+    std::thread t1(loop);
     /* glutの初期化 */
     glutInit(&argc, argv);
     
