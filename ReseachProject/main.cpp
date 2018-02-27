@@ -1,6 +1,4 @@
-//
 //  main.cpp
-//
 #include <iostream>
 #include <stdlib.h>
 #include <ctype.h>
@@ -10,21 +8,37 @@
 #include <sys/time.h>
 #include <thread>
 #include "Vector.h"//自前で用意したもの
+#include <unistd.h>
+#include <fstream>
+#include <sstream>
+
 
 static GLfloat rot_y, rot_x;    /* 立方体の回転角度 */
 static GLfloat bgn_y, bgn_x;    /* ドラッグ開始時の回転角度 */
 static int mouse_x, mouse_y;    /* ドラッグ開始時のマウスの位置 */
 static GLuint cubelist;            /* 立方体のリスト */
-
 GLfloat move = 1.0;
 
+static int samplerate = 80;
+static double step_duration = 1000000.0/samplerate; //μ秒
+std::chrono::system_clock::time_point  start, end,start_all,end_all; // 型は auto で可
+
+
+//境界パラメータ
+//ここではパラメータ要素数が418です
+static double meshpoint[418][3];
 
 
 class Camera{
     public:
     VECTOR3 position = {0,0,20};
     VECTOR3 viewpoint = {0,0,0};
-    
+    void showPos(){//デバッグ用関数
+        printf("position:(%f,%f,%f)\n",position.x,position.y,position.z);
+    }
+    void showView(){//デバッグ用関数
+        printf("viewpoint:(%f,%f,%f)\n",viewpoint.x,viewpoint.y,viewpoint.z);
+    }
     void showDetail(){//デバッグ用関数
         printf("***show***\n");
         printf("position:(%f,%f,%f)\n",position.x,position.y,position.z);
@@ -207,7 +221,7 @@ void key_func(unsigned char key, int x, int y)
             /* プログラムを終了 */
             exit(0);
             break;
-        case 'P':    /* Ｑキー */
+        case 'P':    /* Pキー */
             cam.showDetail();
             break;
     }
@@ -257,20 +271,85 @@ void skey_func(int key, int x, int y)
     glutPostRedisplay();
 }
 
+
 void loop(){
-    int j = 0;
-    while(1){
-        j += 1;
-//        printf("fin:%d\n",j);
+    
+//    int j = 0;
+//    while(1){
+//        start = std::chrono::system_clock::now(); // 計測開始時間
+//        j += 1;
+////        printf("step:%d\n",j);
+////1万ループ程度が限界？
+//
+////        cam.showPos();
+//        end = std::chrono::system_clock::now();  // 計測終了時間
+//        double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間をミリ秒に変換
+////        printf("%1f [ms]\n",elapsed);
+//    }
+    
+    if(true){
+        start_all = std::chrono::system_clock::now();
+        for(int i = 0;i<8000;i++){
+            start = std::chrono::system_clock::now(); // 計測開始時間
+            printf("step%d\n",i);
+            for(int k =0 ; k<30000;k++){//三万ループが限界?
+                //ここら辺で内点計算したい
+            }
+            end = std::chrono::system_clock::now();  // 計測終了時間
+            double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+//            if(elapsed>=step_duration){
+//                printf("*over*%1f [μs]\n",elapsed);
+//            }else{
+//                printf("%1f [μs]\n",elapsed);
+//                usleep(step_duration-elapsed-1);
+//            }
+        }
+        end_all = std::chrono::system_clock::now();  // 計測終了時間
+        double elapsed_all = std::chrono::duration_cast<std::chrono::milliseconds>(end_all-start_all).count(); //処理に要した時間をミリ秒に変換
+        printf("all_end:%1f [ms]\n",elapsed_all);
+        
     }
+
 }
+
+
 /*
  *    main関数
  *        glutを使ってウインドウを作るなどの処理をする
  */
 int main(int argc, char *argv[])
 {
-    std::thread t1(loop);
+    
+    printf("データを読み込み\n");
+///////////////////ファイルの読み込み//////////
+    //meshpoint
+    std::ifstream fin( "meshpoint.d" );
+    std::string str;
+    if( !fin ){
+        printf("ファイルが存在しません");
+        return 1;
+    }else{
+        int node = 0;
+        while (getline(fin, str,' '))
+        {
+            if(str == "" || str== "\n"){//空文字と改行コードをはじく
+                continue;
+            }else{
+                meshpoint[node/3][node%3] = stod(str);
+                node += 1;
+            }
+        }
+    }
+    
+    
+    std::stringstream strstream;
+    strstream << fin.rdbuf();
+    fin.close();
+    
+////////////////////ファイル読み込み終了//////////
+    
+    
+//    std::thread t1(loop);
     /* glutの初期化 */
     glutInit(&argc, argv);
     
