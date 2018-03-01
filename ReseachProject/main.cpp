@@ -26,7 +26,9 @@ std::chrono::system_clock::time_point  start, end,start_all,end_all; // 型は a
 
 //境界パラメータ
 //ここではパラメータ要素数が418です
-static double meshpoint[418][3];
+static double meshpoint[418][3];//メッシュの重心番号,３軸
+static double boundary_sol[418][16000];//メッシュの重心番号,時間ステップ数
+static int meshtriangle[640][3];//三角形番号,さん各駅をなすnode番号
 
 
 class Camera{
@@ -326,7 +328,7 @@ int main(int argc, char *argv[])
     std::ifstream fin( "meshpoint.d" );
     std::string str;
     if( !fin ){
-        printf("ファイルが存在しません");
+        printf("meshpointファイルが存在しません");
         return 1;
     }else{
         int node = 0;
@@ -340,11 +342,61 @@ int main(int argc, char *argv[])
             }
         }
     }
+    //meshtriangle
+    std::ifstream fin2( "meshtriangle.d" );
+    if( !fin2 ){
+        printf("meshtriangleファイルが存在しません");
+        return 1;
+    }else{
+        int node = 0;
+        while (getline(fin2, str,' '))
+        {
+            if(str == "" || str == "\n"){//空文字と改行コードをはじく
+                continue;
+            }else{
+                meshtriangle[node/3][node%3] = stoi(str);
+                node += 1;
+            }
+        }
+    }
+    //boundary_sol
+    std::ifstream fin3( "boundary_sol.d" );
+    if( !fin2 ){
+        printf("boundary_solファイルが存在しません");
+        return 1;
+    }else{
+        int node = 0;
+        while (getline(fin3, str,' '))
+        {
+            if(str == "" || str == "\n"){//空文字と改行コードをはじく
+                continue;
+            }else{
+                if(node <100){
+                    std::cout << str << std::endl;
+                }
+//                meshtriangle[node/3][node%3] = stoi(str);
+                node += 1;
+            }
+        }
+    }
     
+    
+    
+    for(int i = 0 ; i<418;i++){
+//        std::cout<< meshpoint[i][0] <<" " << meshpoint[i][1] << " " <<  meshpoint[i][2] << std::endl;
+//        std::cout<< meshtriangle[i][0] <<" " << meshtriangle[i][1] << " " <<  meshtriangle[i][2] << std::endl;
+    }
     
     std::stringstream strstream;
     strstream << fin.rdbuf();
     fin.close();
+    
+    
+    
+    
+    
+    
+    
     
 ////////////////////ファイル読み込み終了//////////
     
