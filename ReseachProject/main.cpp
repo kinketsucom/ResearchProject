@@ -26,9 +26,9 @@ std::chrono::system_clock::time_point  start, end,start_all,end_all; // 型は a
 
 //境界パラメータ
 //ここではパラメータ要素数が418です
-static double meshpoint[418][3];//メッシュの重心番号,３軸
+static double meshpoint[418][3];//メッシュのnode番号,３軸
 static int meshtriangle[640][3];//三角形番号,さん各駅をなすnode番号
-static double boundary_sol[418][16000];//メッシュの重心番号,時間ステップ数
+static double boundary_sol[640][16000];//三角形番号,時間ステップ数
 
 class Camera{
     public:
@@ -288,7 +288,7 @@ void loop(){
 ////        printf("%1f [ms]\n",elapsed);
 //    }
     
-    if(true){
+    if(true){//ここはスタートした場合を考えている
         start_all = std::chrono::system_clock::now();
         for(int i = 0;i<8000;i++){
             start = std::chrono::system_clock::now(); // 計測開始時間
@@ -370,8 +370,9 @@ int main(int argc, char *argv[])
             if(str == "" || str == "\n"){//空文字と改行コードをはじく
                 continue;
             }else{
-                if(node <1000){
-                    std::cout << str << std::endl;
+                int log = node%1024000;
+                if(log ==0){
+                    std::cout << std::to_string(node/102400) << "%" << std::endl;
                 }
                 //640要素でループ
                 boundary_sol[node%640][node/640] = stoi(str); //node,step
@@ -390,10 +391,7 @@ int main(int argc, char *argv[])
 ////////////////////ファイル読み込み終了////////////////////
     
     
-    
-
-    
-//    std::thread t1(loop);
+    std::thread t1(loop);
     /* glutの初期化 */
     glutInit(&argc, argv);
     
