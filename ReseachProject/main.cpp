@@ -12,23 +12,34 @@
 #include <fstream>
 #include <sstream>
 
+using namespace std;
 
 static GLfloat rot_y, rot_x;    /* 立方体の回転角度 */
 static GLfloat bgn_y, bgn_x;    /* ドラッグ開始時の回転角度 */
 static int mouse_x, mouse_y;    /* ドラッグ開始時のマウスの位置 */
 static GLuint cubelist;            /* 立方体のリスト */
-GLfloat move = 1.0;
+GLfloat move_size = 1.0;
 
 static int samplerate = 80;
-static double step_duration = 1000000.0/samplerate; //μ秒
-std::chrono::system_clock::time_point  start, end,start_all,end_all; // 型は auto で可
+static float step_duration = 1000000.0/samplerate; //μ秒
+std::chrono::system_clock::time_point  start, end_time,start_all,end_all; // 型は auto で可
 
 
 //境界パラメータ
 //ここではパラメータ要素数が418です
-static double meshpoint[418][3];//メッシュのnode番号,３軸
+static float meshpoint[418][3];//メッシュのnode番号,３軸
 static int meshtriangle[640][3];//三角形番号,さん各駅をなすnode番号
-static double boundary_sol[640][16000];//三角形番号,時間ステップ数
+static float boundary_sol[640][16000];//三角形番号,時間ステップ数
+static float mesh_point_center[640][3];//三角形番号,3軸
+static float mesh_point_center_norm[640][3];//三角形番号,三軸
+static float mesh_size[640];
+
+//15 18:30 11人
+//8-9が限界
+//祇園に系列店
+//同じ価格で
+
+
 
 class Camera{
     public:
@@ -235,34 +246,34 @@ void skey_func(int key, int x, int y)
 {
     switch(key){
         case GLUT_KEY_DOWN:    /* したキー *///ここの挙動は気をつける回転について考慮してない
-            cam.position.z += move;//位置移動//
-            cam.viewpoint.z += move;//視点移動//
-            gluLookAt(0,0,move,
-                      0,0,move-1,
+            cam.position.z += move_size;//位置移動//
+            cam.viewpoint.z += move_size;//視点移動//
+            gluLookAt(0,0,move_size,
+                      0,0,move_size-1,
                       0,1,0);
 //            rot_x+=10;
             break;
         case GLUT_KEY_UP:    /* 上キー *///
-            cam.position.z -= move;//位置移動//
-            cam.viewpoint.z -= move;//視点移動//
-            gluLookAt(0,0,-move,
-                      0,0,-move-1,
+            cam.position.z -= move_size;//位置移動//
+            cam.viewpoint.z -= move_size;//視点移動//
+            gluLookAt(0,0,-move_size,
+                      0,0,-move_size-1,
                       0,1,0);
             break;
         case GLUT_KEY_LEFT:    /* 左キー */
 //            rot_y+=10;
-            cam.position.x -= move;//位置移動
-            cam.viewpoint.x -= move;//視点移動
-            gluLookAt(-move,0,0,
-                      -move,0,-1,
+            cam.position.x -= move_size;//位置移動
+            cam.viewpoint.x -= move_size;//視点移動
+            gluLookAt(-move_size,0,0,
+                      -move_size,0,-1,
                       0,1,0);
             break;
         case GLUT_KEY_RIGHT: /* 右キー */
 //            rot_y-=10;
-            cam.position.x += move;//位置移動
-            cam.viewpoint.x += move;//視点移動
-            gluLookAt(move,0,0,
-                      move,0,-1,
+            cam.position.x += move_size;//位置移動
+            cam.viewpoint.x += move_size;//視点移動
+            gluLookAt(move_size,0,0,
+                      move_size,0,-1,
                       0,1,0);
 //            cam.showDetail();
             break;
@@ -284,7 +295,7 @@ void loop(){
 //
 ////        cam.showPos();
 //        end = std::chrono::system_clock::now();  // 計測終了時間
-//        double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間をミリ秒に変換
+//        float elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count(); //処理に要した時間をミリ秒に変換
 ////        printf("%1f [ms]\n",elapsed);
 //    }
     
@@ -296,8 +307,8 @@ void loop(){
             for(int k =0 ; k<30000;k++){//三万ループが限界?
                 //ここら辺で内点計算したい
             }
-            end = std::chrono::system_clock::now();  // 計測終了時間
-            double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+            end_time = std::chrono::system_clock::now();  // 計測終了時間
+            float elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end_time-start).count();
 //            if(elapsed>=step_duration){
 //                printf("*over*%1f [μs]\n",elapsed);
 //            }else{
@@ -306,7 +317,7 @@ void loop(){
 //            }
         }
         end_all = std::chrono::system_clock::now();  // 計測終了時間
-        double elapsed_all = std::chrono::duration_cast<std::chrono::milliseconds>(end_all-start_all).count(); //処理に要した時間をミリ秒に変換
+        float elapsed_all = std::chrono::duration_cast<std::chrono::milliseconds>(end_all-start_all).count(); //処理に要した時間をミリ秒に変換
         printf("all_end:%1f [ms]\n",elapsed_all);
         
     }
@@ -353,11 +364,12 @@ int main(int argc, char *argv[])
             if(str == "" || str == "\n"){//空文字と改行コードをはじく
                 continue;
             }else{
-                meshtriangle[node/3][node%3] = stoi(str);
+                meshtriangle[node/3][node%3] = stoi(str)-1;
                 node += 1;
             }
         }
     }
+    /*
     //boundary_sol
     std::ifstream fin3( "boundary_sol.d" );
     if( !fin3 ){
@@ -380,18 +392,39 @@ int main(int argc, char *argv[])
             }
         }
     }
-    
+     strstream << fin3.rdbuf();
+     fin3.close();
+    */
     std::stringstream strstream;
     strstream << fin.rdbuf();
     fin.close();
     strstream << fin2.rdbuf();
     fin2.close();
-    strstream << fin3.rdbuf();
-    fin3.close();
+
 ////////////////////ファイル読み込み終了////////////////////
     
+////////////////////重心の位置、法線ベクトルの計算////////////////////
+    for(int i=0;i<640;i++){//重心中心取得
+        VECTOR3 point0 = {meshpoint[meshtriangle[i][0]][0] , meshpoint[meshtriangle[i][0]][1],meshpoint[meshtriangle[i][0]][2]};
+        VECTOR3 point1 = {meshpoint[meshtriangle[i][1]][0],meshpoint[meshtriangle[i][1]][1],meshpoint[meshtriangle[i][1]][2]};
+        VECTOR3 point2 = {meshpoint[meshtriangle[i][2]][0],meshpoint[meshtriangle[i][2]][1],meshpoint[meshtriangle[i][2]][2]};
+    //重心取得
+        mesh_point_center [i][0] = (point1.x + point2.x + point0.x)/3;
+        mesh_point_center [i][1] = (point1.y + point2.y + point0.y)/3;
+        mesh_point_center [i][2] = (point1.z + point2.z + point0.z)/3;
+    //メッシュの面積計算
+        VECTOR3 point0_1 = point1 - point0;
+        VECTOR3 point0_2 = point2 - point0;
+        mesh_size [i] = (point0_1.Cross(point0_2)).Magnitude()/2;
+    //法線ベクトル(ちょっと未確認)
+        VECTOR3 norm = point0_1.Cross(point0_2)/(point0_1.Cross(point0_2)).Magnitude();
+        mesh_point_center_norm[i][0] = norm.x;
+        mesh_point_center_norm[i][1] = norm.y;
+        mesh_point_center_norm[i][2] = norm.z;
+    }
     
-    std::thread t1(loop);
+    
+//    std::thread t1(loop);
     /* glutの初期化 */
     glutInit(&argc, argv);
     

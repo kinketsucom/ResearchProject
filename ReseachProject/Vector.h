@@ -9,6 +9,8 @@
 #ifndef Vector_h
 #define Vector_h
 
+#include <math.h>
+
 typedef struct VECTOR3 {
 public:
     
@@ -18,6 +20,18 @@ public:
         (this->x) = x;
         (this->y) = y;
         (this->z) = z;
+    };
+    
+    float Magnitude(){//大きさ
+        return sqrt(x*x+y*y+z*z);
+    };
+    VECTOR3 Cross(VECTOR3 dvec){//外積
+        VECTOR3 v3;
+
+        v3.x = ((this)->y)*dvec.z - ((this)->z)*dvec.y;
+        v3.y = ((this)->z)*dvec.x - ((this)->x)*dvec.z;
+        v3.z = ((this)->x)*dvec.y - ((this)->y)*dvec.x;
+        return v3;
     };
     
     VECTOR3 operator + (const VECTOR3 dvec) const {
@@ -93,6 +107,7 @@ public:
         ((this)->z) /= fDat;
         return *this;
     };
+
     
 } VECTOR3;
 
