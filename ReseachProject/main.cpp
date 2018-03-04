@@ -34,10 +34,6 @@ static float mesh_point_center[640][3];//三角形番号,3軸
 static float mesh_point_center_norm[640][3];//三角形番号,三軸
 static float mesh_size[640];
 
-//15 18:30 11人
-//8-9が限界
-//祇園に系列店
-//同じ価格で
 
 
 
